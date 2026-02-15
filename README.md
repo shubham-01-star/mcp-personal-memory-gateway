@@ -1,3 +1,17 @@
+# 🧠 Personal Memory Gateway (PMG)
+
+> The "VPN for AI Memory" - Built for 2 Fast 2 MCP Hackathon.
+
+[![NPM Version](https://img.shields.io/npm/v/@shubham-01-star/pmg)](https://www.npmjs.com/package/@shubham-01-star/pmg)
+
+## 🚀 Try It Now (Zero Config)
+
+You can run the gateway instantly without installation:
+
+```bash
+npx @shubham-01-star/pmg init
+```
+
 # Personal Memory Gateway (MCP + Archestra)
 
 Local-first backend that stores personal memory, redacts sensitive data, and serves context through MCP tools.
