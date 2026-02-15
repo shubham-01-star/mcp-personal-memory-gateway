@@ -19,6 +19,14 @@
     "README.md",
     "LICENSE"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shubham-01-star/mcp-personal-memory-gateway.git"
+  },
+  "author": "Shubham",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "clean": "node scripts/clean-dist.mjs",
     "dev": "tsx src/index.ts",
