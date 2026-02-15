@@ -48,13 +48,13 @@ After publish, users do not need your source code. They can run:
 ### 1-Minute Setup (Recommended)
 
 ```bash
-npx -y pmg
+npx -y @shubham-01-star/pmg
 ```
 
 ### Manual Installation
 
 ```bash
-npm i -g pmg
+npm i -g @shubham-01-star/pmg
 pmg init
 pmg
 ```
