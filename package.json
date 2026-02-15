@@ -1,0 +1,52 @@
+{
+  "name": "pmg",
+  "version": "0.1.0",
+  "description": "Personal Memory Gateway (PMG) MCP server",
+  "private": false,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "pmg": "dist/cli.js",
+    "personal-memory-gateway": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "dashboard",
+    "scripts/postinstall-message.mjs",
+    ".env.example",
+    "mcp-config.example.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "node scripts/clean-dist.mjs",
+    "dev": "tsx src/index.ts",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check": "npm run typecheck",
+    "run": "node scripts/run-local.mjs",
+    "run:build": "node scripts/run-local.mjs --build",
+    "start": "node dist/index.js",
+    "postinstall": "node scripts/postinstall-message.mjs",
+    "prepack": "npm run build && npm run check"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@lancedb/lancedb": "^0.26.2",
+    "@modelcontextprotocol/sdk": "latest",
+    "chokidar": "^5.0.0",
+    "dotenv": "^17.2.4",
+    "openai": "latest",
+    "pdf-parse": "^2.4.5",
+    "tesseract.js": "^5.1.0",
+    "undici": "^7.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "tsx": "^4.21.0",
+    "typescript": "latest"
+  }
+}

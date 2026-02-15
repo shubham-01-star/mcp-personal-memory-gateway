@@ -1,0 +1,16 @@
+node_modules
+dist
+.npm-local-cache
+.env
+.DS_Store
+npm-debug.log*
+*.log
+data/
+my_data/
+learning-module/
+devlog/
+decisions/
+.cache/
+*.tgz
+demo-data/
+project-docs/

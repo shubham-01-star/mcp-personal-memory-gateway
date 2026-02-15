@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Personal Memory Gateway Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #060c14;
+        --panel: #0d1726;
+        --panel-soft: #121f32;
+        --line: rgba(124, 164, 210, 0.24);
+        --line-strong: rgba(124, 164, 210, 0.44);
+        --text: #e7f1ff;
+        --muted: #9cb3d3;
+        --ok: #3fd89a;
+        --warn: #f5bf54;
+        --bad: #ff6f7f;
+        --info: #57c6ff;
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.42);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        position: relative;
+        color: var(--text);
+        font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 12% -10%, rgba(72, 165, 255, 0.28), transparent 34%),
+          radial-gradient(circle at 84% -12%, rgba(55, 208, 150, 0.2), transparent 34%),
+          linear-gradient(165deg, #040910, #09111d 52%, #04070d);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.22;
+        background-image:
+          linear-gradient(rgba(163, 192, 227, 0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(163, 192, 227, 0.06) 1px, transparent 1px);
+        background-size: 32px 32px;
+        mask-image: radial-gradient(circle at center, black, transparent 85%);
+      }
+
+      .app-shell {
+        width: min(1360px, 92vw);
+        margin: 28px auto 40px;
+      }
+
+      .topbar {
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .topbar::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -12px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(133, 173, 223, 0.45), transparent);
+      }
+
+      .title-wrap {
+        display: grid;
+        gap: 6px;
+      }
+
+      .title-label {
+        font: 600 11px/1 "IBM Plex Mono", monospace;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(24px, 3vw, 38px);
+        line-height: 1.05;
+        letter-spacing: -0.015em;
+      }
+
+      .subtitle {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      .topbar-actions {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 13px;
+        border-radius: 999px;
+        border: 1px solid var(--line-strong);
+        background: rgba(12, 23, 38, 0.74);
+        font: 500 12px/1 "IBM Plex Mono", monospace;
+        color: var(--muted);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        box-shadow: 0 0 0 6px color-mix(in srgb, currentColor 22%, transparent);
+      }
+
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin: 20px 0 14px;
+      }
+
+      .metric-card,
+      .section-card {
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background:
+          linear-gradient(180deg, rgba(17, 31, 50, 0.92), rgba(10, 18, 30, 0.9));
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(6px);
+      }
+
+      .metric-card {
+        padding: 14px 16px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .metric-label {
+        margin: 0;
+        font: 600 11px/1 "IBM Plex Mono", monospace;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .metric-value {
+        margin: 0;
+        font-size: clamp(24px, 2.3vw, 34px);
+        line-height: 1;
+        font-weight: 700;
+      }
+
+      .metric-meta {
+        margin: 0;
+        font-size: 12px;
+        color: color-mix(in srgb, var(--muted) 88%, #ffffff 12%);
+      }
+
+      .main-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+        gap: 14px;
+      }
+
+      .section-card {
+        padding: 14px;
+        opacity: 0;
+        transform: translateY(10px);
+        animation: rise 0.48s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+      }
+
+      .main-grid > *:nth-child(1) {
+        animation-delay: 40ms;
+      }
+
+      .main-grid > *:nth-child(2) {
+        animation-delay: 110ms;
+      }
+
+      .main-grid > *:nth-child(3) {
+        animation-delay: 180ms;
+      }
+
+      .main-grid > *:nth-child(4) {
+        animation-delay: 250ms;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .section-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .section-title {
+        margin: 0;
+        font: 600 13px/1 "IBM Plex Mono", monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .section-note {
+        margin: 0;
+        font-size: 11px;
+        color: color-mix(in srgb, var(--muted) 88%, #fff 12%);
+      }
+
+      .log {
+        height: 360px;
+        overflow: auto;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, #0a1322, #08101d);
+        padding: 8px;
+      }
+
+      .entry {
+        border: 1px solid transparent;
+        border-bottom-color: rgba(133, 173, 223, 0.18);
+        border-radius: 10px;
+        padding: 10px 9px;
+        margin-bottom: 6px;
+        transition: border-color 180ms ease, background-color 180ms ease;
+        animation: pop 220ms ease-out;
+      }
+
+      .entry:hover {
+        border-color: rgba(133, 173, 223, 0.28);
+        background: rgba(11, 22, 37, 0.62);
+      }
+
+      .entry:last-child {
+        margin-bottom: 0;
+      }
+
+      .entry-type {
+        font: 600 11px/1.2 "IBM Plex Mono", monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--info);
+      }
+
+      .entry[data-event-type="risk_blocked"] .entry-type,
+      .entry[data-event-type="ingest_error"] .entry-type {
+        color: var(--bad);
+      }
+
+      .entry[data-event-type="consent_required"] .entry-type {
+        color: var(--warn);
+      }
+
+      .entry[data-event-type="memory_saved"] .entry-type,
+      .entry[data-event-type="ingest_success"] .entry-type {
+        color: var(--ok);
+      }
+
+      .entry-time {
+        margin-top: 5px;
+        color: #84a0c8;
+        font: 500 11px/1 "IBM Plex Mono", monospace;
+      }
+
+      .entry-body {
+        margin-top: 6px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font: 500 12px/1.5 "IBM Plex Mono", monospace;
+        color: color-mix(in srgb, var(--text) 94%, #000 6%);
+      }
+
+      .stack {
+        display: grid;
+        gap: 14px;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .context-box,
+      .files,
+      .consent-box,
+      .upload-box,
+      .graph-box {
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, #0a1322, #08101d);
+      }
+
+      .context-box,
+      .consent-box,
+      .upload-box {
+        padding: 10px;
+      }
+
+      .context-label {
+        margin: 0 0 8px;
+        font: 600 10px/1 "IBM Plex Mono", monospace;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .context-content {
+        white-space: pre-wrap;
+        word-break: break-word;
+        font: 500 12px/1.5 "IBM Plex Mono", monospace;
+        color: color-mix(in srgb, var(--text) 95%, #000 5%);
+        min-height: 42px;
+      }
+
+      .consent-actions {
+        margin-top: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .btn {
+        border: 1px solid var(--line-strong);
+        background: linear-gradient(180deg, rgba(18, 31, 50, 0.95), rgba(12, 21, 34, 0.95));
+        color: var(--text);
+        border-radius: 10px;
+        padding: 8px 12px;
+        font: 600 12px/1 "IBM Plex Mono", monospace;
+        cursor: pointer;
+        transition: transform 100ms ease, border-color 150ms ease, color 150ms ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        border-color: color-mix(in srgb, var(--line-strong) 65%, #fff 35%);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn.allow {
+        color: var(--ok);
+        border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+      }
+
+      .btn.deny {
+        color: var(--bad);
+        border-color: color-mix(in srgb, var(--bad) 45%, transparent);
+      }
+
+      .btn.guide {
+        color: var(--info);
+        border-color: color-mix(in srgb, var(--info) 45%, transparent);
+      }
+
+      .graph-box {
+        height: 320px;
+        padding: 6px;
+      }
+
+      .files {
+        height: 224px;
+        overflow: auto;
+        padding: 8px;
+      }
+
+      .file {
+        padding: 8px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        margin-bottom: 6px;
+        font: 500 12px/1.45 "IBM Plex Mono", monospace;
+        color: color-mix(in srgb, var(--text) 95%, #000 5%);
+        background: rgba(10, 20, 34, 0.4);
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .file:last-child {
+        margin-bottom: 0;
+      }
+
+      .file-main {
+        min-width: 0;
+      }
+
+      .file-name {
+        font: 600 12px/1.4 "IBM Plex Mono", monospace;
+        color: var(--text);
+        margin-bottom: 3px;
+      }
+
+      .file-meta {
+        font: 500 11px/1.4 "IBM Plex Mono", monospace;
+        color: var(--muted);
+        word-break: break-word;
+      }
+
+      .file-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .btn.ghost-danger {
+        color: var(--bad);
+        border-color: color-mix(in srgb, var(--bad) 45%, transparent);
+      }
+
+      .drop-zone {
+        border: 1px dashed rgba(133, 173, 223, 0.55);
+        border-radius: 12px;
+        padding: 16px 14px;
+        text-align: center;
+        color: var(--muted);
+        background: rgba(15, 28, 44, 0.66);
+        cursor: pointer;
+        transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+      }
+
+      .drop-zone:hover {
+        border-color: var(--info);
+        color: var(--text);
+      }
+
+      .drop-zone.drag-over {
+        border-color: var(--ok);
+        background: rgba(53, 191, 138, 0.15);
+        color: #dcffef;
+      }
+
+      .drop-zone.disabled {
+        opacity: 0.56;
+        cursor: not-allowed;
+      }
+
+      .upload-row {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .upload-input {
+        flex: 1;
+        min-width: 220px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 9px 10px;
+        background: rgba(10, 20, 34, 0.8);
+        color: var(--text);
+        font: 500 12px/1.4 "IBM Plex Mono", monospace;
+      }
+
+      .upload-input::placeholder {
+        color: color-mix(in srgb, var(--muted) 92%, #fff 8%);
+      }
+
+      .upload-token {
+        margin-top: 8px;
+      }
+
+      .upload-hint {
+        margin-top: 8px;
+        color: var(--muted);
+        font: 500 11px/1.4 "IBM Plex Mono", monospace;
+      }
+
+      .upload-progress {
+        margin-top: 10px;
+      }
+
+      .upload-progress-track {
+        width: 100%;
+        height: 8px;
+        border-radius: 999px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: rgba(7, 13, 22, 0.9);
+      }
+
+      .upload-progress-fill {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, #59cbff, #40da9d);
+        transition: width 140ms linear;
+      }
+
+      .upload-progress-text {
+        margin-top: 6px;
+        color: var(--muted);
+        font: 500 11px/1 "IBM Plex Mono", monospace;
+      }
+
+      .status-text {
+        margin-top: 8px;
+      }
+
+      .guide-modal {
+        position: fixed;
+        inset: 0;
+        padding: 18px;
+        background: rgba(2, 7, 12, 0.74);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+        z-index: 30;
+      }
+
+      .guide-modal.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .guide-panel {
+        width: min(880px, 100%);
+        max-height: min(88vh, 760px);
+        overflow: auto;
+        border-radius: 16px;
+        border: 1px solid var(--line-strong);
+        background: linear-gradient(180deg, rgba(16, 28, 44, 0.98), rgba(8, 14, 24, 0.98));
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
+        padding: 16px;
+      }
+
+      .guide-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+
+      .guide-subtitle {
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .guide-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 10px;
+      }
+
+      .guide-card {
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(7, 14, 24, 0.8);
+        padding: 10px;
+      }
+
+      .guide-card-title {
+        margin: 0 0 6px;
+        font: 600 12px/1.2 "IBM Plex Mono", monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text);
+      }
+
+      .guide-card-text {
+        margin: 0;
+        font: 500 12px/1.45 "IBM Plex Mono", monospace;
+        color: var(--muted);
+      }
+
+      .guide-prompts {
+        margin-top: 10px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .guide-prompt {
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(6, 12, 21, 0.88);
+        padding: 9px;
+      }
+
+      .guide-prompt-header {
+        margin: 0 0 6px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .guide-prompt-title {
+        margin: 0;
+        font: 600 11px/1 "IBM Plex Mono", monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--muted);
+      }
+
+      .guide-prompt code {
+        display: block;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font: 500 12px/1.45 "IBM Plex Mono", monospace;
+        color: color-mix(in srgb, var(--text) 95%, #000 5%);
+      }
+
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 1180px) {
+        .metrics-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .main-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .app-shell {
+          width: min(94vw, 1360px);
+          margin-top: 18px;
+        }
+
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+
+        .metric-card,
+        .section-card {
+          border-radius: 14px;
+        }
+
+        .upload-row {
+          flex-direction: column;
+        }
+
+        .upload-input {
+          min-width: 0;
+          width: 100%;
+        }
+
+        .upload-row .btn,
+        .consent-actions .btn {
+          width: 100%;
+        }
+
+        .guide-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .topbar-actions {
+          width: 100%;
+          justify-content: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="title-wrap">
+          <div class="title-label">Personal Memory Gateway</div>
+          <h1>Privacy Operations Console</h1>
+          <p class="subtitle">Live memory events, redaction safety, ingestion, and trust telemetry in one place.</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn guide" id="openToolGuideBtn" type="button">Tool Guide</button>
+          <div class="status-pill" id="statusBadge"><span class="status-dot"></span>SSE: connecting...</div>
+        </div>
+      </header>
+
+      <section class="metrics-grid">
+        <article class="metric-card">
+          <p class="metric-label">Total Queries</p>
+          <p class="metric-value" id="totalQueries">0</p>
+          <p class="metric-meta">All MCP recall requests</p>
+        </article>
+        <article class="metric-card">
+          <p class="metric-label">Security Blocks</p>
+          <p class="metric-value" id="blockedHighRisk">0</p>
+          <p class="metric-meta">High-risk responses prevented</p>
+        </article>
+        <article class="metric-card">
+          <p class="metric-label">Total Redactions</p>
+          <p class="metric-value" id="totalRedactions">0</p>
+          <p class="metric-meta">Sensitive entities masked</p>
+        </article>
+        <article class="metric-card">
+          <p class="metric-label">Indexed Files</p>
+          <p class="metric-value" id="totalIngestedFiles">0</p>
+          <p class="metric-meta">Files accepted into memory</p>
+        </article>
+      </section>
+
+      <section class="main-grid">
+        <article class="section-card">
+          <div class="section-header">
+            <h2 class="section-title">Live Events</h2>
+            <p class="section-note">Newest first</p>
+          </div>
+          <div class="log" id="eventsLog"></div>
+        </article>
+
+        <article class="section-card stack">
+          <section>
+            <div class="section-header">
+              <h2 class="section-title">Redaction Visualizer</h2>
+              <p class="section-note">Original vs sanitized</p>
+            </div>
+            <div class="two-col">
+              <div class="context-box">
+                <p class="context-label">Original Context</p>
+                <div class="context-content" id="originalContext">No event yet</div>
+              </div>
+              <div class="context-box">
+                <p class="context-label">Sanitized Context</p>
+                <div class="context-content" id="redactedContext">No event yet</div>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <div class="section-header">
+              <h2 class="section-title">Consent Gate</h2>
+              <p class="section-note">Manual override for high-risk requests</p>
+            </div>
+            <div class="consent-box">
+              <div class="context-content" id="consentPrompt">No pending consent request</div>
+              <div class="consent-actions">
+                <button class="btn allow" id="consentAllowBtn" disabled>Allow</button>
+                <button class="btn deny" id="consentDenyBtn" disabled>Deny</button>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <div class="section-header">
+              <h2 class="section-title">Upload & Index</h2>
+              <p class="section-note">Drag-and-drop ingestion</p>
+            </div>
+            <div class="upload-box">
+              <div class="drop-zone" id="uploadDropZone" tabindex="0">
+                Drag and drop a file here, or click to choose.
+              </div>
+              <div class="upload-row">
+                <input
+                  class="upload-input"
+                  id="uploadFileInput"
+                  type="file"
+                  accept=".txt,.md,.pdf,.png,.jpg,.jpeg"
+                />
+                <button class="btn" id="uploadFileBtn">Upload and Index</button>
+              </div>
+              <input
+                class="upload-input upload-token"
+                id="uploadTokenInput"
+                type="password"
+                placeholder="Upload token (optional)"
+              />
+              <div class="upload-hint">Supported: .txt, .md, .pdf, .png, .jpg, .jpeg</div>
+              <div class="upload-progress" id="uploadProgressWrap">
+                <div class="upload-progress-track">
+                  <div class="upload-progress-fill" id="uploadProgressBar"></div>
+                </div>
+                <div class="upload-progress-text" id="uploadProgressText">Idle</div>
+              </div>
+              <div class="context-content status-text" id="uploadStatus">No upload yet</div>
+            </div>
+          </section>
+        </article>
+
+        <article class="section-card">
+          <div class="section-header">
+            <h2 class="section-title">Knowledge Map</h2>
+            <p class="section-note">Recent memory topology</p>
+          </div>
+          <div class="graph-box" id="knowledgeGraph"></div>
+        </article>
+
+        <article class="section-card">
+          <div class="section-header">
+            <h2 class="section-title">Indexed Files</h2>
+            <div class="section-actions">
+              <p class="section-note">Latest 50 files</p>
+              <button class="btn ghost-danger" id="clearAllFilesBtn" type="button">
+                Clear All Uploaded Data
+              </button>
+              <button class="btn ghost-danger" id="clearAllMemoryBtn" type="button">
+                Clear Uploaded + Saved Memory
+              </button>
+            </div>
+          </div>
+          <div class="files" id="filesList"></div>
+        </article>
+      </section>
+    </main>
+    <div class="guide-modal" id="toolGuideModal" aria-hidden="true">
+      <section class="guide-panel" role="dialog" aria-modal="true" aria-labelledby="toolGuideTitle">
+        <div class="guide-header">
+          <h2 class="section-title" id="toolGuideTitle">Tool Guide</h2>
+          <button class="btn" id="closeToolGuideBtn" type="button">Close</button>
+        </div>
+        <p class="guide-subtitle">End-user flow: upload content, save memory, query memory, verify privacy, and reset data.</p>
+        <div class="guide-grid">
+          <article class="guide-card">
+            <h3 class="guide-card-title">1) Upload Source File</h3>
+            <p class="guide-card-text">
+              Use the Upload & Index section. File will be copied to <code>my_data/</code> and indexed for retrieval.
+            </p>
+          </article>
+          <article class="guide-card">
+            <h3 class="guide-card-title">2) Enable Tools In Chat</h3>
+            <p class="guide-card-text">
+              In Archestra Chat, verify <code>save_memory</code> and <code>query_personal_memory</code> are enabled.
+            </p>
+          </article>
+          <article class="guide-card">
+            <h3 class="guide-card-title">3) Save User Memory</h3>
+            <p class="guide-card-text">
+              Ask the agent to call <code>save_memory</code> for user facts like preferences, goals, and profile details.
+            </p>
+          </article>
+          <article class="guide-card">
+            <h3 class="guide-card-title">4) Query Memory Safely</h3>
+            <p class="guide-card-text">
+              Ask the agent to call <code>query_personal_memory</code>. Sensitive content is automatically redacted.
+            </p>
+          </article>
+          <article class="guide-card">
+            <h3 class="guide-card-title">5) Observe Telemetry</h3>
+            <p class="guide-card-text">
+              Use Live Events, Redaction Visualizer, and Indexed Files to audit behavior in real time.
+            </p>
+          </article>
+          <article class="guide-card">
+            <h3 class="guide-card-title">6) Delete / Reset</h3>
+            <p class="guide-card-text">
+              Remove one file from Indexed Files or use <code>Clear All Uploaded Data</code> for full cleanup.
+            </p>
+          </article>
+        </div>
+
+        <div class="guide-prompts">
+          <article class="guide-prompt">
+            <div class="guide-prompt-header">
+              <p class="guide-prompt-title">Save Memory Prompt</p>
+              <button
+                class="btn copy-guide-btn"
+                type="button"
+                data-copy-text='Call tool save_memory with {"fact":"I like black coffee."} and reply only: SAVED'>
+                Copy Prompt
+              </button>
+            </div>
+            <code>Call tool save_memory with {"fact":"I like black coffee."} and reply only: SAVED</code>
+          </article>
+          <article class="guide-prompt">
+            <div class="guide-prompt-header">
+              <p class="guide-prompt-title">Query Memory Prompt</p>
+              <button
+                class="btn copy-guide-btn"
+                type="button"
+                data-copy-text='Call tool query_personal_memory with {"topic":"what do I like?"} and return only tool result.'>
+                Copy Prompt
+              </button>
+            </div>
+            <code>Call tool query_personal_memory with {"topic":"what do I like?"} and return only tool result.</code>
+          </article>
+          <article class="guide-prompt">
+            <div class="guide-prompt-header">
+              <p class="guide-prompt-title">Privacy Test Prompt</p>
+              <button
+                class="btn copy-guide-btn"
+                type="button"
+                data-copy-text='Call tool query_personal_memory with {"topic":"what is my phone number"} and return only tool result.'>
+                Copy Prompt
+              </button>
+            </div>
+            <code>Call tool query_personal_memory with {"topic":"what is my phone number"} and return only tool result.</code>
+          </article>
+        </div>
+      </section>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+    <script type="module" src="/dashboard/app.js"></script>
+  </body>
+</html>

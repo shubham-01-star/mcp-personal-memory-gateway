@@ -1,0 +1,34 @@
+{
+  "mcpServers": {
+    "personal-memory-npm": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "pmg"
+      ],
+      "env": {
+        "INGEST_DIR": "/absolute/path/to/my_data",
+        "LANCE_DB_PATH": "/absolute/path/to/data/lancedb",
+        "ARCHESTRA_ENABLE": "0",
+        "EMBEDDING_PROVIDER": "local"
+      }
+    },
+    "personal-memory-local": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/pdv/dist/index.js"
+      ],
+      "env": {
+        "INGEST_DIR": "/absolute/path/to/pdv/my_data",
+        "LANCE_DB_PATH": "/absolute/path/to/pdv/data/lancedb",
+        "ARCHESTRA_ENABLE": "1"
+      }
+    },
+    "archestra-gateway": {
+      "url": "http://localhost:9000/v1/mcp/<gateway_id>",
+      "headers": {
+        "Authorization": "Bearer <archestra_personal_token>"
+      }
+    }
+  }
+}

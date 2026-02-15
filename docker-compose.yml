@@ -1,0 +1,20 @@
+services:
+  archestra:
+    image: archestra/platform:latest
+    container_name: archestra-platform
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "3000:3000" # Dashboard
+      - "9000:9000" # API / LLM Gateway
+    volumes:
+      - archestra-app-data:/app/data
+      - archestra-postgres-data:/var/lib/postgresql/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+volumes:
+  archestra-app-data:
+  archestra-postgres-data:
